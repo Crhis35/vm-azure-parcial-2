@@ -4,7 +4,7 @@
 - name: Install mysql server 8 and initialize
   hosts: azurevms
   gather_facts: false
-  become_method: runas
+  become: false
   vars:
     mysql_root_password: 'secure-root-pw'
     ansible_python_interpreter: /usr/bin/python3
