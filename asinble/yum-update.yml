@@ -1,7 +1,7 @@
 # Update all packages
 ---
 - hosts: azurevms
-  become: true
+  become: false
   tasks:
     - name: Update all packages
       yum:

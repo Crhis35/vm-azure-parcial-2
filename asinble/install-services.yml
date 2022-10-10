@@ -6,7 +6,7 @@
   gather_facts: false
   become: false
   vars:
-    mysql_root_password: 'secure-root-pw'
+    mysql_root_password: 'Th1sIsAP@ssw0rd'
     ansible_python_interpreter: /usr/bin/python3
   tasks:
     - name: Ensure required packages are installed
