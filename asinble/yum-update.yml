@@ -2,6 +2,7 @@
 ---
 - hosts: azurevms
   become: false
+  gather_facts: no
   tasks:
     - name: Update all packages
       yum:
