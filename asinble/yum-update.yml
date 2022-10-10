@@ -1,6 +1,6 @@
 # Update all packages
 ---
-- hosts: all
+- hosts: db-server
   become: true
   tasks:
     - name: Update all packages
