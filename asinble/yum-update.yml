@@ -1,6 +1,6 @@
 # Update all packages
 ---
-- hosts: db-server
+- hosts: azurevms
   become: true
   tasks:
     - name: Update all packages
