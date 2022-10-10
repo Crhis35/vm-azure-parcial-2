@@ -4,7 +4,4 @@
 [azurevms:vars]
 ansible_user=Vm1
 ansible_password=Th1sIsAP@ssw0rd
-ansible_connection=winrm
-ansible_winrm_transport=basic
-ansible_winrm_server_cert_validation=ignore
-ansible_port=5986
+ansible_connection=ssh
