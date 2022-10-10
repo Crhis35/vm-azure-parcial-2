@@ -1,0 +1,15 @@
+# Update all packages
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Update all packages
+      yum:
+        name: "*"
+        update_cache: yes
+        skip_broken: yes
+        state: latest
+
+    - name: Wait for 900 seconds before timing out
+      wait_for_connection:
+        timeout: 900

@@ -1,0 +1,93 @@
+# Install services on webserver
+
+---
+- name: Install mysql server 8 and initialize
+  hosts: db-server
+  gather_facts: false
+  become: true
+  vars:
+    mysql_root_password: 'secure-root-pw'
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Ensure required packages are installed
+      dnf:
+        name:
+          - mysql-server
+          - mysql-devel
+          - python39
+          - python39-devel
+          - python39-pip
+          - gcc
+        state: latest
+
+    - name: Install Required pip modules
+      pip:
+        name:
+          - PyMySQL
+        state: present
+        executable: pip3
+
+    - name: Ensure mysql service is running
+      systemd:
+        name: mysqld
+        state: restarted
+        enabled: yes
+
+    - name: Ensure root user can only login from localhost
+      mysql_user:
+        login_password: "{{ mysql_root_password }}"
+        check_implicit_admin: yes
+        name: root
+        host: "{{ item }}"
+        password: "{{ mysql_root_password }}"
+        state: present
+      with_items:
+        - localhost
+        - 127.0.0.1
+        - ::1
+
+    - name: Add .my.cnf to user home
+      template:
+        src: my.cnf.j2
+        dest: /root/.my.cnf
+
+    - name: Reload privilege tables
+      command: |
+        mysql -p{{ mysql_root_password }} -ne "{{ item }}"
+      with_items:
+        - FLUSH PRIVILEGES
+      changed_when: False
+
+    - name: Remove anonymous users
+      command: |
+        mysql -p{{ mysql_root_password }} -ne "{{ item }}"
+      with_items:
+        - DELETE FROM mysql.user WHERE User=''
+      changed_when: False
+
+    - name: Disallow root login remotely
+      command: |
+        mysql -p{{ mysql_root_password }} -ne "{{ item }}"
+      with_items:
+        - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
+      changed_when: False
+
+    - name: Remove test database and access to it
+      command: |
+        mysql -p{{ mysql_root_password }} -ne "{{ item }}"
+      with_items:
+        - DROP DATABASE IF EXISTS test
+        - DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'
+      changed_when: False
+
+    - name: Reload privilege tables
+      command: |
+        mysql -p{{ mysql_root_password }} -ne "{{ item }}"
+      with_items:
+        - FLUSH PRIVILEGES
+      changed_when: False
+
+    - name: Delete .my.conf
+      file:
+        path: /root/.my.cnf
+        state: absent
