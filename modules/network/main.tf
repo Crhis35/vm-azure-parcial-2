@@ -45,7 +45,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "*"
+    source_address_prefix      = var.management_ip
     destination_address_prefix = "*"
 
   }
@@ -104,6 +104,31 @@ resource "azurerm_network_security_group" "app_nsg" {
     source_port_range          = "*"
     destination_port_range     = "3389"
     source_address_prefix      = var.management_ip
+    destination_address_prefix = "*"
+  }
+  security_rule {
+    name                       = "allowMysql"
+    priority                   = 105
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3306"
+    source_address_prefixes = setunion(
+      azurerm_subnet.appgw.address_prefixes,
+      azurerm_subnet.app_subnet.address_prefixes,
+    )
+    destination_address_prefix = "*"
+  }
+  security_rule {
+    name                       = "allowMysqlLocal"
+    priority                   = 106
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3306"
+    source_address_prefix = var.management_ip
     destination_address_prefix = "*"
   }
 }

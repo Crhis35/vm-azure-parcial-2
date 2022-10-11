@@ -11,6 +11,6 @@ location           = "westus"
 rg-name            = "rg-parcialapp"
 vn_name            = "vn-parcialapp"
 apps_name          = ["app-parcial-1", "app-parcial-2"]
-cloud_shell_source = "ip"
-management_ip      = "ip"
+cloud_shell_source = "ip" you azure cloud shell ip
+management_ip      = "ip" your laptop ip
 ````
