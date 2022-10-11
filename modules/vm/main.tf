@@ -53,9 +53,9 @@ resource "azurerm_linux_virtual_machine" "vmss" {
 
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    publisher = "OpenLogic"
+    offer     = "CentOS"
+    sku       = "8_5"
     version   = "latest"
   }
 

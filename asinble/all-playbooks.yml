@@ -1,5 +1,4 @@
 # Congregate and learn all playbooks
-
 ---
 - import_playbook: yum-update.yml
 - import_playbook: install-services.yml
