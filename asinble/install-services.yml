@@ -6,30 +6,33 @@
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    mysql_root_password: "secure-root-pw"
+    mysql_root_password: Th1sIsAP@ssw0rd
+    user: crhis
+    password: admin
+    dbname: parcialappdb
   tasks:
-    - name: Ensure required packages are installed
-      dnf:
+    - name: install mariadb
+      yum:
         name:
-          - mysql-server
-          - mysql-devel
-          - python39
-          - python39-devel
-          - python39-pip
-          - gcc
+          - mariadb-server
+          - python3-PyMySQL
         state: latest
-
-    - name: Install Required pip modules
-      pip:
-        name:
-          - PyMySQL
-        state: present
-        executable: pip3
-    - name: Ensure mysql service is running
-      systemd:
-        name: mysqld
+    - name: start mariadb
+      service:
+        name: mariadb
+        enabled: true
         state: started
-        enabled: yes
+
+    - name: "Create user {{ user }}"
+      mysql_user:
+        name: "{{ user }}"
+        password: "{{ password }}"
+        check_implicit_admin: yes
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        priv: "*.*:ALL,GRANT"
+        state: present
+        host: "%"
 
     - name: Ensure root user can only login from localhost
       mysql_user:
@@ -43,6 +46,17 @@
         - localhost
         - 127.0.0.1
         - ::1
+
+    - name: create a new database
+      mysql_db: name=testdb state=present login_user=root login_password="{{ mysql_root_password }}"
+
+    - name: add sample data to database
+      copy:
+        src: dump.sql
+        dest: /tmp/dump.sql
+
+    - name: insert sample data into database
+      mysql_db: name={{ dbname }} state=import target=/tmp/dump.sql login_user=root login_password="{{ mysql_root_password }}"
 
     - name: Add .my.cnf to user home
       template:
@@ -89,3 +103,5 @@
       file:
         path: /root/.my.cnf
         state: absent
+    - name: Modify configuration file to listen on all interfaces
+      lineinfile: dest=/etc/my.cnf.d/mariadb-server.cnf regexp="^bind-address" line="bind-address=0.0.0.0"
