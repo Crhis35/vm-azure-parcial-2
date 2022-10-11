@@ -128,7 +128,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3306"
-    source_address_prefix = var.management_ip
+    source_address_prefix = "*"
     destination_address_prefix = "*"
   }
 }
