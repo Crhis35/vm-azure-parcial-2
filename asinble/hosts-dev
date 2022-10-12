@@ -1,5 +1,5 @@
 [azurevms]
-20.253.231.137
+20.245.188.253
 
 [azurevms:vars]
 ansible_user=Vm1
