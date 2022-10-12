@@ -71,7 +71,7 @@ module "app-gateway" {
   subnet_id = module.network.subnet_gw_id
   vn_name   = var.vn_name
   apps_name = var.apps_name
-
+  hostnames = module.app-service.hostnames
 
   resource_group = {
     name     = azurerm_resource_group.resource_group.name,
@@ -80,6 +80,7 @@ module "app-gateway" {
 
   depends_on = [
     azurerm_resource_group.resource_group,
-    module.network
+    module.network,
+    module.app-service
   ]
 }

@@ -1,12 +1,10 @@
 locals {
-  backend_address_pool_name      = "${var.vn_name}-beap"
-  frontend_port_name             = "${var.vn_name}-feport"
-  frontend_ip_configuration_name = "${var.vn_name}-feip"
+  backend_probe_name             = "${var.vn_name}-probe"
   http_setting_name              = "${var.vn_name}-be-htst"
-  listener_name                  = "${var.vn_name}-httplstn"
-  request_routing_rule_name      = "${var.vn_name}-rqrt"
-  redirect_configuration_name    = "${var.vn_name}-rdrcfg"
+  public_ip_name                 = "${var.vn_name}-pip"
+  frontend_ip_configuration_name = "${var.vn_name}-feip"
 }
+
 
 resource "azurerm_public_ip" "public_ip" {
   name                = "app-pip"
@@ -22,70 +20,89 @@ resource "azurerm_application_gateway" "agw" {
   resource_group_name = var.resource_group.name
 
   sku {
-    name     = "WAF_Medium"
-    tier     = "WAF"
+    name     = "Standard_Small"
+    tier     = "Standard"
     capacity = 2
   }
 
-  waf_configuration {
-    enabled          = "true"
-    firewall_mode    = "Detection"
-    rule_set_type    = "OWASP"
-    rule_set_version = "3.0"
-  }
+
+  # waf_configuration {
+  #   enabled          = "true"
+  #   firewall_mode    = "Detection"
+  #   rule_set_type    = "OWASP"
+  #   rule_set_version = "3.0"
+  # }
 
   gateway_ip_configuration {
     name      = "subnet"
     subnet_id = var.subnet_id
   }
 
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
+  dynamic "frontend_port" {
+    for_each = var.apps_name
+    content {
+      name = "${frontend_port.value}.azurewebsites.net-feport"
+      port = tonumber("808${frontend_port.key}")
+    }
   }
+
 
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
     public_ip_address_id = azurerm_public_ip.public_ip.id
   }
 
-  backend_address_pool {
-    name  = local.backend_address_pool_name
-    fqdns = [for dns in toset(var.apps_name) : "${dns}.azurewebsites.net"]
+  dynamic "backend_address_pool" {
+    for_each = toset(var.hostnames)
+    content {
+      name  = "${backend_address_pool.key}-beap"
+      fqdns = [backend_address_pool.value]
+    }
   }
 
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
+
 
   probe {
-    name = "probe"
-    host = "${var.app_name}.azurewebsites.net"
-
-    protocol            = "Http"
-    path                = "/"
-    interval            = "30"
-    timeout             = "30"
-    unhealthy_threshold = "3"
+    name                                      = local.backend_probe_name
+    protocol                                  = "Http"
+    path                                      = "/"
+    interval                                  = 30
+    timeout                                   = 120
+    unhealthy_threshold                       = 3
+    pick_host_name_from_backend_http_settings = true
+    match {
+      status_code = [200, 399]
+    }
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-    probe_name            = "probe"
+    name                                = local.http_setting_name
+    probe_name                          = local.backend_probe_name
+    cookie_based_affinity               = "Disabled"
+    path                                = "/"
+    port                                = 80
+    protocol                            = "Http"
+    request_timeout                     = 120
+    pick_host_name_from_backend_address = true
   }
 
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
+  dynamic "http_listener" {
+    for_each = var.hostnames
+    content {
+      name                           = "${http_listener.value}-httplstn"
+      frontend_ip_configuration_name = "${var.vn_name}-feip"
+      frontend_port_name             = "${http_listener.value}-feport"
+      protocol                       = "Http"
+    }
+  }
+  dynamic "request_routing_rule" {
+    for_each = var.hostnames
+    content {
+      name                       = "${request_routing_rule.value}-rqrt"
+      rule_type                  = "Basic"
+      http_listener_name         = "${request_routing_rule.value}-httplstn"
+      backend_address_pool_name  = "${request_routing_rule.value}-beap"
+      backend_http_settings_name = local.http_setting_name
+    }
   }
 }

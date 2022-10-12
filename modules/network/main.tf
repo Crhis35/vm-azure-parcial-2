@@ -107,13 +107,13 @@ resource "azurerm_network_security_group" "app_nsg" {
     destination_address_prefix = "*"
   }
   security_rule {
-    name                       = "allowMysql"
-    priority                   = 105
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "3306"
+    name                   = "allowMysql"
+    priority               = 105
+    direction              = "Inbound"
+    access                 = "Allow"
+    protocol               = "Tcp"
+    source_port_range      = "*"
+    destination_port_range = "3306"
     source_address_prefixes = setunion(
       azurerm_subnet.appgw.address_prefixes,
       azurerm_subnet.app_subnet.address_prefixes,
@@ -128,18 +128,18 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3306"
-    source_address_prefix = "*"
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "nsg_association-gw" {
-  subnet_id                 = azurerm_subnet.appgw.id
-  network_security_group_id = azurerm_network_security_group.app_nsg.id
-  depends_on = [
-    azurerm_network_security_group.app_nsg
-  ]
-}
+# resource "azurerm_subnet_network_security_group_association" "nsg_association-gw" {
+#   subnet_id                 = azurerm_subnet.appgw.id
+#   network_security_group_id = azurerm_network_security_group.app_nsg.id
+#   depends_on = [
+#     azurerm_network_security_group.app_nsg
+#   ]
+# }
 resource "azurerm_subnet_network_security_group_association" "nsg_association" {
   subnet_id                 = azurerm_subnet.app_subnet.id
   network_security_group_id = azurerm_network_security_group.app_nsg.id

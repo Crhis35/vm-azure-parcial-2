@@ -22,3 +22,7 @@ variable "apps_name" {
   description = "Name of the apps service"
   type        = list(string)
 }
+variable "hostnames" {
+  description = "Host names of the apps service"
+  type        = list(string)
+}
