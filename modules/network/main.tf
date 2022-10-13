@@ -120,17 +120,17 @@ resource "azurerm_network_security_group" "app_nsg" {
     )
     destination_address_prefix = "*"
   }
-  security_rule {
-    name                       = "allowMysqlLocal"
-    priority                   = 106
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "3306"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
+  # security_rule {
+  #   name                       = "allowMysqlLocal"
+  #   priority                   = 106
+  #   direction                  = "Inbound"
+  #   access                     = "Allow"
+  #   protocol                   = "Tcp"
+  #   source_port_range          = "*"
+  #   destination_port_range     = "3306"
+  #   source_address_prefix      = "*"
+  #   destination_address_prefix = "*"
+  # }
 }
 
 # resource "azurerm_subnet_network_security_group_association" "nsg_association-gw" {
